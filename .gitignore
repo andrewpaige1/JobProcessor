@@ -1,0 +1,24 @@
+# Build artifacts
+bin/
+obj/
+
+# Logs
+*.log
+
+# User-specific files
+.vscode/
+*.user
+*.suo
+
+# CSV/data files
+jobs.csv
+
+# ASP.NET secrets
+secrets.json
+
+# Dotnet artifacts
+*.db
+*.pdb
+
+# Docker artifacts
+*.tar

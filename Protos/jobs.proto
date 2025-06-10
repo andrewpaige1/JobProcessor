@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option csharp_namespace = "JobScraperService";  // Clear C# namespace
+
+package job.scraper;  // More specific package name
+
+// Service for handling scraped job listings
+service JobScraperService {
+  // Sends batch of scraped jobs and returns information about new jobs found
+  rpc ProcessScrapedJobs (ScrapedJobBatch) returns (JobProcessingResult) {}
+}
+
+// Represents a single scraped job listing
+message ScrapedJob {
+  string company = 1;
+  string title = 2;
+  string location = 3;
+  string date_posted = 4;
+  string company_description = 5;
+  string company_size = 6;
+  string job_url = 7;
+  string scraped_at = 8;
+}
+
+// Batch of scraped jobs to process
+message ScrapedJobBatch {
+  repeated ScrapedJob jobs = 1;
+}
+
+// Result of processing the scraped jobs
+message JobProcessingResult {
+  int32 new_jobs_found = 1;
+  repeated string new_job_titles = 2;
+}
