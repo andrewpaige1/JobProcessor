@@ -5,6 +5,7 @@ on:
     branches: [ main ]
 
 permissions:
+  id-token: write
   contents: read
 
 jobs:
@@ -28,9 +29,16 @@ jobs:
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/employee-service:latest .
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/employee-service:latest
 
+      - name: Create Container App Environment
+        run: |
+          az containerapp env create \
+            --name employee-env \
+            --resource-group employeeapp-rg \
+            --location eastus || echo "Environment may already exist"
+
       - name: Deploy to Azure Container Apps
         run: |
-          az containerapp create \
+          az containerapp up \
             --name employee-service \
             --resource-group employeeapp-rg \
             --environment employee-env \
