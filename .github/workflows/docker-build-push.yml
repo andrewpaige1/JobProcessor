@@ -1,4 +1,4 @@
-name: Build and Push to ACR
+name: Build, Push, and Deploy to Azure Container Apps
 
 on:
   push:
@@ -8,11 +8,11 @@ permissions:
   contents: read
 
 jobs:
-  build-and-push:
+  build-push-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Azure login with service principal
@@ -23,7 +23,19 @@ jobs:
       - name: Docker login to ACR
         run: az acr login --name ${{ secrets.ACR_NAME }}
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image to ACR
         run: |
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/employee-service:latest .
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/employee-service:latest
+
+      - name: Deploy to Azure Container Apps
+        run: |
+          az containerapp create \
+            --name employee-service \
+            --resource-group employeeapp-rg \
+            --environment employee-env \
+            --image ${{ secrets.ACR_NAME }}.azurecr.io/employee-service:latest \
+            --ingress external \
+            --target-port 80 \
+            --registry-server ${{ secrets.ACR_NAME }}.azurecr.io \
+            --query properties.configuration.ingress.fqdn
