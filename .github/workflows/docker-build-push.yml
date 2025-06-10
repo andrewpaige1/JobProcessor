@@ -13,42 +13,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout source
         uses: actions/checkout@v3
 
-      - name: Azure login with service principal
+      - name: Azure login with OIDC
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Docker login to ACR
         run: az acr login --name ${{ secrets.ACR_NAME }}
 
-      - name: Build and push Docker image to ACR
+      - name: Build and push Docker image
         run: |
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/employee-service:latest .
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/employee-service:latest
 
-      - name: Create Container App Environment
-        run: |
-          az containerapp env create \
-            --name employee-env \
-            --resource-group employeeapp-rg \
-            --location eastus || echo "Environment may already exist"
-
       - name: Deploy to Azure Container Apps
         run: |
-          USERNAME=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query username --output tsv)
-          PASSWORD=$(az acr credential show --name ${{ secrets.ACR_NAME }} --query passwords[0].value --output tsv)
-          
-          az containerapp up \
+          az containerapp update \
             --name employee-service \
             --resource-group employeeapp-rg \
-            --environment employee-env \
             --image ${{ secrets.ACR_NAME }}.azurecr.io/employee-service:latest \
-            --ingress external \
-            --target-port 80 \
-            --registry-server ${{ secrets.ACR_NAME }}.azurecr.io \
-            --registry-username $USERNAME \
-            --registry-password $PASSWORD \
-            --query properties.configuration.ingress.fqdn
+            --registry-server ${{ secrets.ACR_NAME }}.azurecr.io
