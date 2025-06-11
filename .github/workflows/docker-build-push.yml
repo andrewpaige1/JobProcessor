@@ -35,11 +35,10 @@ jobs:
 
       - name: Deploy to Azure Container Apps
         run: |
-          az containerapp show \
-            --name employee-service \
-            --resource-group employeeapp-rg > /dev/null 2>&1
-
-          if [ $? -eq 0 ]; then
+          # If the app exists, update; otherwise create
+          if az containerapp show \
+               --name employee-service \
+               --resource-group employeeapp-rg &>/dev/null; then
             echo "Updating existing Container App..."
             az containerapp update \
               --name employee-service \
@@ -56,3 +55,4 @@ jobs:
               --target-port 80 \
               --ingress external
           fi
+
