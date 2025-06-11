@@ -39,4 +39,3 @@ jobs:
             --name employee-service \
             --resource-group employeeapp-rg \
             --image ${{ secrets.ACR_NAME }}.azurecr.io/employee-service:${{ github.sha }} \
-            --registry-server ${{ secrets.ACR_NAME }}.azurecr.io
