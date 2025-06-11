@@ -35,7 +35,9 @@ jobs:
 
       - name: Deploy to Azure Container Apps
         run: |
-          # If the app exists, update; otherwise create
+          # Dynamically build the identity resource ID using secret
+          IDENTITY_ID="/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/employeeapp-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/github-acr-push"
+
           if az containerapp show \
                --name employee-service \
                --resource-group employeeapp-rg &>/dev/null; then
@@ -52,7 +54,7 @@ jobs:
               --environment employee-env \
               --image ${{ secrets.ACR_NAME }}.azurecr.io/employee-service:${{ github.sha }} \
               --registry-server ${{ secrets.ACR_NAME }}.azurecr.io \
+              --registry-identity "$IDENTITY_ID" \
               --target-port 80 \
               --ingress external
           fi
-
